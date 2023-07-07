@@ -13,4 +13,17 @@ micros:
       - /manifest.webmanifest
     run: uvicorn main:app
     dev: yarn dev
+  - name: api
+    src: ./api
+    engine: nodejs16
+    provide_actions: true
+    run: node index.js
+    dev: node --watch index.js
+    public_routes:
+      - "/*"
+    presets:
+      env:
+        - name: PROJECT_ID
+          description: Project id you can get from the builder
+          default: "null"
 
