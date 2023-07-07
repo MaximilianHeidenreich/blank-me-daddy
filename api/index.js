@@ -12,68 +12,68 @@ app.use(express.json());
 const client = Deta(process.env.DETA_PROJECT_KEY);
 
 app.get("/__space/actions", (req, res) => {
-    res.json({
-        actions: [
-            {
-                name: "add_note",
-                title: "Add Note",
-                path: "/add_note",
-                input: [
-                    {
-                        name: "text",
-                        type: "string",
-                        accept: ["text"]
-                    }
-                ],
-                output: "/api/note"
-            }
-        ]
-    });
+  res.json({
+    actions: [
+      {
+        name: "add_note",
+        title: "Add Note",
+        path: "/add_note",
+        input: [
+          {
+            name: "text",
+            type: "string",
+            accept: ["text"]
+          }
+        ],
+        output: "/api/note"
+      }
+    ]
+  });
 });
 
 app.post("/add_note", async (req, res) => {
-    if (!req.body.text) {
-        res.json({ ok: false, err: "No text!" });
-        return;
-    }
+  if (!req.body.text) {
+    res.json({ ok: false, err: "No text!" });
+    return;
+  }
 
-    const deta = Deta();
-    const memodb = deta.Base("memos");
+  const deta = Deta();
+  const memodb = deta.Base("memos");
 
-    const key = crypto.randomUUID();
-    await memodb.put(
-        {
-            position: {
-                left: 200,
-                top: 200
-            },
-            size: {
-                height: 200,
-                width: 400
-            },
-            text: `Saved Summary (${new Date().toLocaleDateString()}):\n\n${req.body.text}`
-        },
-        key
-    );
+  const key = crypto.randomUUID();
+  await memodb.put(
+    {
+      position: {
+        left: 200,
+        top: 200
+      },
+      size: {
+        height: 200,
+        width: 400
+      },
+      text: `Saved Summary (${new Date().toLocaleDateString()}):\n\n${req.body.text}`
+    },
+    key
+  );
 
-    res.json({ ok: true, noteKey: key });
+  res.json({ ok: true, noteKey: key });
 });
 
 app.get("/note", async (req, res) => {
-    const q = JSON.parse(req.query.input);
+  const q = JSON.parse(req.query.input);
 
-    const memodb = client.Base("memos");
-    const note = await memodb.get(q.noteKey);
+  const memodb = client.Base("memos");
+  const note = await memodb.get(q.noteKey);
 
-    const contents = fs.readFileSync(dirname(fileURLToPath(import.meta.url)) + "/card.html", "utf8");
-    const template = handlebars.compile(contents);
-    res.send(
-        template({
-            noteContent: note.text //req.query.input
-        })
-    );
-    // res.sendFile(dirname(fileURLToPath(import.meta.url)) + "/card.html");
-    //res.send("Hello World!");
+  const contents = fs.readFileSync(dirname(fileURLToPath(import.meta.url)) + "/card.html", "utf8");
+  const template = handlebars.compile(contents);
+  res.send(
+    template({
+      noteContent: note.text // req.query.input
+    })
+  );
+  // res.sendFile(dirname(fileURLToPath(import.meta.url)) + "/card.html");
+  // res.send("Hello World!");
 });
 
 const port = process.env.PORT || 3000;
